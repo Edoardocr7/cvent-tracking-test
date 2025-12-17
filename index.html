@@ -2,42 +2,44 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Evento Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Evento Test Cvent</title>
 </head>
 <body>
 
-<h1>Evento di Prova</h1>
-<p>Se vedi questo testo, il sito funziona.</p>
+  <h1>Evento di Prova</h1>
+  <p>Se vedi questo testo, il sito funziona.</p>
 
-<button id="registerBtn">Registrati</button>
+  <button id="registerBtn">Registrati</button>
 
-<script>
-  // Genera un UID univoco e lo salva nel localStorage
-  let uid = localStorage.getItem("uid");
-  if (!uid) {
-    uid = "UID-" + crypto.randomUUID();
-    localStorage.setItem("uid", uid);
-  }
+  <script>
+    // Genera un UID univoco e lo salva nel localStorage
+    let uid = localStorage.getItem("uid");
+    if (!uid) {
+      uid = "UID-" + crypto.randomUUID();
+      localStorage.setItem("uid", uid);
+    }
 
-  // Aggiunge listener al bottone
-  document.getElementById("registerBtn").addEventListener("click", function () {
+    // Aggiunge listener al bottone
+    document.getElementById("registerBtn").addEventListener("click", function () {
 
-    // Invia i dati a n8n
-    fetch("https://n8n.miodominio.com/webhook/tracking", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        uid: uid,
-        action: "click_register",
-        timestamp: new Date().toISOString()
-      })
+      // Invia i dati a n8n
+      fetch("https://n8n.miodominio.com/webhook/tracking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: uid,
+          action: "click_register",
+          page: window.location.pathname,
+          timestamp: new Date().toISOString()
+        })
+      });
+
+      // Reindirizza a Cvent
+      window.location.href =
+        "https://events.cvent.com/d/abc123?uid=" + uid;
     });
-
-    // Reindirizza a Cvent
-    window.location.href =
-      "https://events.cvent.com/d/abc123?uid=" + uid;
-  });
-</script>
+  </script>
 
 </body>
 </html>
