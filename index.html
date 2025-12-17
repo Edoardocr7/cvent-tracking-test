@@ -6,24 +6,20 @@
   <title>Evento Test Cvent</title>
 </head>
 <body>
-  
+
   <h1>Evento di Prova</h1>
   <p>Se vedi questo testo, il sito funziona.</p>
 
   <button id="registerBtn">Registrati</button>
 
   <script>
-    // Genera un UID univoco e lo salva nel localStorage
     let uid = localStorage.getItem("uid");
     if (!uid) {
       uid = "UID-" + crypto.randomUUID();
       localStorage.setItem("uid", uid);
     }
 
-    // Aggiunge listener al bottone
     document.getElementById("registerBtn").addEventListener("click", function () {
-
-      // Invia i dati a n8n
       fetch("https://n8n.miodominio.com/webhook/tracking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -35,7 +31,6 @@
         })
       });
 
-      // Reindirizza a Cvent
       window.location.href =
         "https://events.cvent.com/d/abc123?uid=" + uid;
     });
