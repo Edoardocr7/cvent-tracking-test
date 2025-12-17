@@ -4,36 +4,164 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Evento Test Cvent</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; margin: 0; }
+    
+    /* Layout header e menu */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #0073e6;
+      color: white;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+    }
+    
+    header h1 { margin: 0; font-size: 1.2rem; }
+    
+    .user-menu {
+      position: relative;
+      display: inline-block;
+    }
+
+    .user-btn {
+      background-color: #005bb5;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      border-radius: 4px;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      right: 0;
+      background-color: white;
+      color: black;
+      min-width: 180px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      border-radius: 4px;
+      z-index: 1;
+    }
+
+    .dropdown-content a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: black;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f1f1f1;
+    }
+
+    .user-menu:hover .dropdown-content {
+      display: block;
+    }
+
+    /* Eventi */
+    .event { margin-bottom: 20px; }
+    .event h2 { margin-bottom: 5px; }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .user-btn { margin-top: 10px; width: 100%; }
+      .dropdown-content { min-width: 100%; }
+    }
+  </style>
 </head>
 <body>
 
-  <h1>Evento di Prova</h1>
-  <p>Se vedi questo testo, il sito funziona.</p>
+  <header>
+    <h1>Programma Evento</h1>
+    <div class="user-menu">
+      <button class="user-btn" id="userBtn">Utente: <span id="uidDisplay"></span> ▼</button>
+      <div class="dropdown-content">
+        <a href="#">Profilo</a>
+        <a href="#">Impostazioni</a>
+        <a href="#">Attività recenti</a>
+        <a href="#">Supporto</a>
+        <a href="#">Logout</a>
+      </div>
+    </div>
+  </header>
 
-  <button id="registerBtn">Registrati</button>
+  <main>
+    <div class="event" data-id="1">
+      <h2>09:00 - Apertura Registrazioni</h2>
+      <p>Benvenuto all’evento, ritira il tuo badge.</p>
+    </div>
+
+    <div class="event" data-id="2">
+      <h2>10:00 - Keynote</h2>
+      <p>Presentazione principale con relatore ospite.</p>
+    </div>
+
+    <div class="event" data-id="3">
+      <h2>11:00 - Workshop</h2>
+      <p>Sessione pratica su strumenti e tecniche.</p>
+    </div>
+  </main>
 
   <script>
+    // Genera o recupera UID unico
     let uid = localStorage.getItem("uid");
     if (!uid) {
       uid = "UID-" + crypto.randomUUID();
       localStorage.setItem("uid", uid);
     }
+    document.getElementById("uidDisplay").textContent = uid;
 
-    document.getElementById("registerBtn").addEventListener("click", function () {
+    // Funzione per inviare dati al webhook n8n
+    function trackAction(action, details = {}) {
       fetch("https://n8n.miodominio.com/webhook/tracking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           uid: uid,
-          action: "click_register",
+          action: action,
           page: window.location.pathname,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          details: details
         })
       });
+    }
 
-      window.location.href =
-        "https://events.cvent.com/d/abc123?uid=" + uid;
+    // Traccia subito la visita alla pagina
+    trackAction("page_view");
+
+    // Traccia click su qualsiasi sezione evento
+    document.querySelectorAll(".event").forEach(eventDiv => {
+      eventDiv.addEventListener("click", () => {
+        trackAction("click_event", {
+          eventId: eventDiv.dataset.id,
+          eventTitle: eventDiv.querySelector("h2").textContent
+        });
+      });
     });
+
+    // Traccia scroll
+    let lastScroll = 0;
+    window.addEventListener("scroll", () => {
+      const scrollY = window.scrollY;
+      if (Math.abs(scrollY - lastScroll) > 50) { // ogni 50px
+        trackAction("scroll", { scrollY: scrollY });
+        lastScroll = scrollY;
+      }
+    });
+
+    // Simula verifica utente con token virtuale
+    let token = localStorage.getItem("token");
+    if (!token) {
+      token = "TOKEN-" + crypto.randomUUID();
+      localStorage.setItem("token", token);
+    }
+    // Il token può essere inviato insieme ad ogni tracking
   </script>
 
 </body>
