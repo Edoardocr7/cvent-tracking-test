@@ -18,3 +18,26 @@
     uid = "UID-" + crypto.randomUUID();
     localStorage.setItem("uid", uid);
   }
+
+  // Aggiunge listener al bottone
+  document.getElementById("registerBtn").addEventListener("click", function () {
+
+    // Invia i dati a n8n
+    fetch("https://n8n.miodominio.com/webhook/tracking", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: uid,
+        action: "click_register",
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    // Reindirizza a Cvent
+    window.location.href =
+      "https://events.cvent.com/d/abc123?uid=" + uid;
+  });
+</script>
+
+</body>
+</html>
