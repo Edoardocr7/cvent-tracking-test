@@ -4,40 +4,74 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Evento Test Cvent</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .event { margin-bottom: 20px; }
+    .event h2 { margin-bottom: 5px; }
+  </style>
 </head>
 <body>
-  
-  <h1>Evento di Prova</h1>
-  <p>Se vedi questo testo, il sito funziona.</p>
 
-  <button id="registerBtn">Registrati</button>
+  <h1>Programma dell’Evento</h1>
+  <div class="event" data-id="1">
+    <h2>09:00 - Apertura Registrazioni</h2>
+    <p>Benvenuto all’evento, ritira il tuo badge.</p>
+  </div>
+
+  <div class="event" data-id="2">
+    <h2>10:00 - Keynote</h2>
+    <p>Presentazione principale con relatore ospite.</p>
+  </div>
+
+  <div class="event" data-id="3">
+    <h2>11:00 - Workshop</h2>
+    <p>Sessione pratica su strumenti e tecniche.</p>
+  </div>
 
   <script>
-    // Genera un UID univoco e lo salva nel localStorage
+    // Genera o recupera UID unico
     let uid = localStorage.getItem("uid");
     if (!uid) {
       uid = "UID-" + crypto.randomUUID();
       localStorage.setItem("uid", uid);
     }
 
-    // Aggiunge listener al bottone
-    document.getElementById("registerBtn").addEventListener("click", function () {
-
-      // Invia i dati a n8n
+    // Funzione per inviare dati al webhook n8n
+    function trackAction(action, details = {}) {
       fetch("https://n8n.miodominio.com/webhook/tracking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           uid: uid,
-          action: "click_register",
+          action: action,
           page: window.location.pathname,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          details: details
         })
       });
+    }
 
-      // Reindirizza a Cvent
-      window.location.href =
-        "https://events.cvent.com/d/abc123?uid=" + uid;
+    // Traccia subito la visita alla pagina
+    trackAction("page_view");
+
+    // Traccia click su qualsiasi sezione evento
+    document.querySelectorAll(".event").forEach(eventDiv => {
+      eventDiv.addEventListener("click", () => {
+        trackAction("click_event", {
+          eventId: eventDiv.dataset.id,
+          eventTitle: eventDiv.querySelector("h2").textContent
+        });
+      });
+    });
+
+    // Traccia scroll
+    let lastScroll = 0;
+    window.addEventListener("scroll", () => {
+      const scrollY = window.scrollY;
+      if (Math.abs(scrollY - lastScroll) > 50) { // ogni 50px
+        trackAction("scroll", { scrollY: scrollY });
+        lastScroll = scrollY;
+      }
     });
   </script>
 
